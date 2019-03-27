@@ -1,0 +1,24 @@
+{
+  "name": "safe-merge-files",
+  "version": "0.0.1",
+  "description": "Merge two files like git",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test"
+  },
+  "keywords": [
+    "git",
+    "merge",
+    "files",
+    "javascript"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thekoushik/safe-merge-files.git"
+  },
+  "author": "Koushik Seal",
+  "license": "MIT",
+  "dependencies": {
+    "diff": "^4.0.1"
+  }
+}
