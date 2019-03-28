@@ -8,8 +8,9 @@ module.exports=function(oldFile,newFile,options,callback){
 		options={};
 	}
 	var op=Object.assign({
-		outputFile:null
-	},options||{})
+		outputFile:null,
+		force:false
+	},options||{});
 	var source=fs.readFileSync(oldFile,{encoding:'utf8'});
 	var patch=diff.structuredPatch('A','B',source,fs.readFileSync(newFile,{encoding:'utf8'}),'','');
 	if(patch.hunks.length==0)
@@ -35,23 +36,29 @@ module.exports=function(oldFile,newFile,options,callback){
 					strToBeWritten+=source.slice(patch.hunks[hunkIndex-1].oldStart+patch.hunks[hunkIndex-1].oldLines-1).join('\n');
 				}
 			}
-			if(pendingRemoves.length==0 && pendingAdditions.length){
+			if(!pendingRemoves.length && pendingAdditions.length){//only addition
 				strToBeWritten+=pendingAdditions.join('\n')+'\n';
-			}else if(pendingRemoves.length || pendingAdditions.length){
-				if(!conflict) conflict=pendingRemoves.length && pendingAdditions.length;
-				var pendingsR=pendingRemoves.join('\n');
-				var pendingsA=pendingAdditions.join('\n');
-				strToBeWritten+=`<<<<<<< HEAD\r\n${pendingsR.length?pendingsR+'\n':''}=======\n${pendingsA.length?pendingsA+'\n':''}>>>>>>> New-HEAD\n`;
+			}else if(pendingRemoves.length && pendingAdditions.length){//conflict
+				conflict=true;
+				if(options.force){//prefer additions
+					strToBeWritten+=pendingAdditions.join('\n')+'\n';
+				}else{
+					strToBeWritten+=`<<<<<<< HEAD\n${pendingRemoves.join('\n')}\n=======\n${pendingAdditions.join('\n')}\n>>>>>>> New-HEAD\n`;
+				}
 			}
 			if(normalLine)
 				strToBeWritten+=normalLine.substr(1)+'\n';
-			writer.write(strToBeWritten,function(err){
+			var writeFinishCallback=function(err){
 				pendingRemoves=[];
 				pendingAdditions=[];
 				if(addToPendingRemoves) pendingRemoves.push(addToPendingRemoves);
 				if(cb) cb();
 				else reader.emit('data');
-			})
+			};
+			if(!strToBeWritten.length)
+				writeFinishCallback(null);
+			else
+				writer.write(strToBeWritten,writeFinishCallback);
 		}
 		var hunkIndex=0;
 		var hunkLineIndex=-1;

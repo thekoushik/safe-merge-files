@@ -1,12 +1,13 @@
 {
   "name": "safe-merge-files",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Merge two files like git",
   "main": "index.js",
   "scripts": {
-    "test": "node test"
+    "test": "mocha"
   },
   "keywords": [
+    "without",
     "git",
     "merge",
     "files",
@@ -20,5 +21,8 @@
   "license": "MIT",
   "dependencies": {
     "diff": "^4.0.1"
+  },
+  "devDependencies": {
+    "mocha": "^6.0.2"
   }
 }
