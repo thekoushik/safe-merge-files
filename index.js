@@ -2,7 +2,7 @@ var diff = require("diff");
 var fs = require('fs');
 var EE = require('events').EventEmitter;
 
-module.exports=function(oldFile,newFile,options,callback){
+function Async(oldFile,newFile,options,callback){
 	if(typeof options=='function'){
 		callback=options;
 		options={};
@@ -14,7 +14,7 @@ module.exports=function(oldFile,newFile,options,callback){
 	var source=fs.readFileSync(oldFile,{encoding:'utf8'});
 	var patch=diff.structuredPatch('A','B',source,fs.readFileSync(newFile,{encoding:'utf8'}),'','');
 	if(patch.hunks.length==0)
-		callback(null,true);
+		callback(null,0);
 	else{
 		source=source.split('\n');
 		var writer=fs.createWriteStream(op.outputFile || newFile);
@@ -97,9 +97,10 @@ module.exports=function(oldFile,newFile,options,callback){
 		})
 		reader.on('end',function(){
 			writePendings(false,false,function(){
-				callback(null,conflict);
+				callback(null,conflict?-1:1);
 			});
 		});
 		reader.emit('data');
 	}
 }
+module.exports=Async;

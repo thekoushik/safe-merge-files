@@ -1,6 +1,6 @@
 {
   "name": "safe-merge-files",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Merge two files like git",
   "main": "index.js",
   "scripts": {
@@ -10,6 +10,8 @@
     "without",
     "git",
     "merge",
+    "conflict",
+    "resolve",
     "files",
     "javascript"
   ],
