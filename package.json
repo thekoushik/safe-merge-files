@@ -1,6 +1,6 @@
 {
   "name": "safe-merge-files",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Merge two files like git",
   "main": "index.js",
   "scripts": {
@@ -22,6 +22,7 @@
   "author": "Koushik Seal",
   "license": "MIT",
   "dependencies": {
+    "deasync": "^0.1.14",
     "diff": "^4.0.1"
   },
   "devDependencies": {
