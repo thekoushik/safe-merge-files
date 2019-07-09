@@ -26,6 +26,6 @@
     "diff": "^4.0.1"
   },
   "devDependencies": {
-    "mocha": "^6.0.2"
+    "mocha": "^6.1.4"
   }
 }
