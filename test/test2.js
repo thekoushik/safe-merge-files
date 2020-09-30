@@ -2,8 +2,8 @@ var safeMergeFiles = require('..');
 var fs = require('fs');
 var assert= require('assert');
 
-var tempfile1=__dirname+'/temp_old.txt';
-var tempfile2=__dirname+'/temp_new.txt';
+var tempfile1=__dirname+'/temp_old2.txt';
+var tempfile2=__dirname+'/temp_new2.txt';
 describe('addition and deletion with and without conflict test', function() {
     describe('addition and deletion without conflict test', function() {
         var result;
