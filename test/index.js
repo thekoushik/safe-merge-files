@@ -17,10 +17,10 @@ describe('small file tests',function(){
 			});
 		});
 		it('should be equal ',function(){
-			assert.equal(fs.readFileSync(tempfile2,'utf8'),fs.readFileSync(tempfile1,'utf8'));
+			assert.strictEqual(fs.readFileSync(tempfile2,'utf8'),fs.readFileSync(tempfile1,'utf8'));
 		});
 		it('change should be 0',function(){
-			assert.equal(result,0)
+			assert.strictEqual(result,0)
 		});
 	});
 	describe('addition test', function() {
@@ -34,10 +34,10 @@ describe('small file tests',function(){
 			});
 		});
 		it('length should be more than old',function(){
-			assert.equal(fs.readFileSync(tempfile2,'utf8').length>fs.readFileSync(tempfile1,'utf8').length,true);
+			assert.strictEqual(fs.readFileSync(tempfile2,'utf8').length>fs.readFileSync(tempfile1,'utf8').length,true);
 		});
 		it('change should be 1',function(){
-			assert.equal(result,1);
+			assert.strictEqual(result,1);
 		});
 	});
 	describe('deletion test', function() {
@@ -51,10 +51,10 @@ describe('small file tests',function(){
 			});
 		});
 		it('length should be less than old',function(){
-			assert.equal(fs.readFileSync(tempfile2,'utf8').length<fs.readFileSync(tempfile1,'utf8').length,true);
+			assert.strictEqual(fs.readFileSync(tempfile2,'utf8').length<fs.readFileSync(tempfile1,'utf8').length,true);
 		});
 		it('change should be 1',function(){
-			assert.equal(result,1);
+			assert.strictEqual(result,1);
 		});
 	});
 	describe('addition and deletion without conflict test', function() {
@@ -68,10 +68,10 @@ describe('small file tests',function(){
 			});
 		});
 		it('should not have conflict',function(){
-			assert.equal(fs.readFileSync(tempfile2,'utf8'),'line 2\nline 3\nline 4\nline 5\n');
+			assert.strictEqual(fs.readFileSync(tempfile2,'utf8'),'line 2\nline 3\nline 4\nline 5\n');
 		});
 		it('change should be 1',function(){
-			assert.equal(result,1);
+			assert.strictEqual(result,1);
 		});
 	});
 	describe('conflict test', function() {
@@ -85,10 +85,10 @@ describe('small file tests',function(){
 			});
 		});
 		it('should match the conflicted result',function(){
-			assert.equal(fs.readFileSync(tempfile2,'utf8'),'line 1\n<<<<<<< HEAD\nline 2\n=======\nline2\n>>>>>>> New-HEAD\nline 3\n');
+			assert.strictEqual(fs.readFileSync(tempfile2,'utf8'),'line 1\n<<<<<<< HEAD\nline 2\n=======\nline2\n>>>>>>> New-HEAD\nline 3');
 		});
 		it('change should be -1',function(){
-			assert.equal(result,-1);
+			assert.strictEqual(result,-1);
 		});
 	});
 	describe('force test', function() {
@@ -102,10 +102,10 @@ describe('small file tests',function(){
 			});
 		});
 		it('should match the conflicted result with new file',function(){
-			assert.equal(fs.readFileSync(tempfile2,'utf8'),'line 1\nline2\nline 3\n');
+			assert.strictEqual(fs.readFileSync(tempfile2,'utf8'),'line 1\nline2\nline 3\n');
 		});
 		it('change should be -1',function(){
-			assert.equal(result,-1);
+			assert.strictEqual(result,-1);
 		});
 	});
 	describe('output file test', function() {
@@ -117,10 +117,10 @@ describe('small file tests',function(){
 			});
 		});
 		it('should not harm new file',function(){
-			assert.equal(fs.readFileSync(tempfile2,'utf8'),'line 1\nline2\nline 3\n');
+			assert.strictEqual(fs.readFileSync(tempfile2,'utf8'),'line 1\nline2\nline 3\n');
 		});
 		it('should have new output file with result',function(){
-			assert.equal(fs.readFileSync(tempfile3,'utf8'),'line 1\n<<<<<<< HEAD\nline 2\n=======\nline2\n>>>>>>> New-HEAD\nline 3\n');
+			assert.strictEqual(fs.readFileSync(tempfile3,'utf8'),'line 1\n<<<<<<< HEAD\nline 2\n=======\nline2\n>>>>>>> New-HEAD\nline 3\n');
 		});
 		after(function(){
 			fs.unlinkSync(tempfile3);

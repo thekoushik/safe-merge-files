@@ -39,29 +39,42 @@ function Async(oldFile,newFile,options,callback){
 	if(patch.hunks.length==0)
 		callback(null,0);
 	else{
+		//console.log('patch.hunks',patch.hunks);
 		source=source.split('\n');
 		var writer=fs.createWriteStream(op.outputFile || newFile);
+		var alreadyWritten=false;
 		var lastSymbol=null;
 		var hunkPending=Boolean(patch.hunks[0].oldStart>1);
 		var pendingRemoves=[];
 		var pendingAdditions=[];
 		var reader=new EE();
 		var conflict = false;
+		var needNewLineAtEnd=false;
 		var writePendings=function(normalLine,addToPendingRemoves,cb){
 			var strToBeWritten=[];
 			if(hunkPending){
 				hunkPending=false;
-				var preArr;
+				var preArr=[];
 				if(hunkIndex==0){
 					preArr=source.slice(0,patch.hunks[hunkIndex].oldStart-1);
 				}else if(hunkIndex<patch.hunks.length){
 					preArr=source.slice(patch.hunks[hunkIndex-1].oldStart+patch.hunks[hunkIndex-1].oldLines-1,patch.hunks[hunkIndex].oldStart-1);
 				}else{//lastHunk
-					preArr=source.slice(patch.hunks[hunkIndex-1].oldStart+patch.hunks[hunkIndex-1].oldLines-1);
+					let lastStart=patch.hunks[hunkIndex-1].oldStart+patch.hunks[hunkIndex-1].oldLines-1;
+					if(lastStart==source.length-1){
+						if(source[source.length-1]){
+							preArr=[source[source.length-1]];
+						}else{
+							needNewLineAtEnd=true;
+						}
+					}
 				}
 				if(preArr.length)
 					strToBeWritten.push(preArr.join('\n'));
 			}
+			//console.log('writePendings(',normalLine,',',addToPendingRemoves,',',cb);
+			//console.log('pendingRemoves',pendingRemoves);
+			//console.log('pendingAdditions',pendingAdditions);
 			if(!pendingRemoves.length && pendingAdditions.length){//only addition
 				strToBeWritten.push(pendingAdditions.join('\n'));
 			}else if(pendingRemoves.length && pendingAdditions.length){//conflict
@@ -74,6 +87,7 @@ function Async(oldFile,newFile,options,callback){
 			}
 			if(normalLine)
 				strToBeWritten.push(normalLine.substr(1));
+			//console.log('strToBeWritten',strToBeWritten);
 			var writeFinishCallback=function(err){
 				pendingRemoves=[];
 				pendingAdditions=[];
@@ -81,10 +95,16 @@ function Async(oldFile,newFile,options,callback){
 				if(cb) cb();
 				else reader.emit('data');
 			};
-			if(!strToBeWritten.length)
-				writeFinishCallback(null);
-			else
-				writer.write(strToBeWritten.join('\n')+(cb?'':'\n'),writeFinishCallback);
+			if(!strToBeWritten.length){
+				if(needNewLineAtEnd)
+					writer.write('\n',writeFinishCallback);
+				else
+					writeFinishCallback(null);
+			}else{
+				let lastCharacter=needNewLineAtEnd?'\n':'';
+				writer.write((alreadyWritten?'\n':'')+strToBeWritten.join('\n')+(cb?lastCharacter:''),writeFinishCallback);
+				alreadyWritten=true;
+			}
 		}
 		var hunkIndex=0;
 		var hunkLineIndex=-1;
@@ -114,10 +134,10 @@ function Async(oldFile,newFile,options,callback){
 				lastSymbol='+';
 				return reader.emit('data');
 			}else{//skip \ No newline at end of file
-				if(lastSymbol){
-					lastSymbol=null;
-					writePendings();
-				}else
+				//if(lastSymbol){
+				//	lastSymbol=null;
+				//	writePendings();
+				//}else
 					return reader.emit('data');
 			}
 		})
@@ -149,12 +169,14 @@ function Sync(oldFile, newFile, options){
 		return op.stream?null:0;
 	else{
 		source=source.split('\n');
+		var alreadyWritten=false;
 		var lastSymbol=null;
 		var hunkPending=Boolean(patch.hunks[0].oldStart>1);
 		var pendingRemoves=[];
 		var pendingAdditions=[];
 		var conflict = false;
 		var writer;
+		var needNewLineAtEnd=false;
 		if(op.stream){
 			writer=new NodeStream.Readable();
 		}else{
@@ -164,13 +186,20 @@ function Sync(oldFile, newFile, options){
 			var strToBeWritten=[];
 			if(hunkPending){
 				hunkPending=false;
-				var preArr;
+				var preArr=[];
 				if(hunkIndex==0){
 					preArr=source.slice(0,patch.hunks[hunkIndex].oldStart-1);
 				}else if(hunkIndex<patch.hunks.length){
 					preArr=source.slice(patch.hunks[hunkIndex-1].oldStart+patch.hunks[hunkIndex-1].oldLines-1,patch.hunks[hunkIndex].oldStart-1);
 				}else{//lastHunk
-					preArr=source.slice(patch.hunks[hunkIndex-1].oldStart+patch.hunks[hunkIndex-1].oldLines-1);
+					let lastStart=patch.hunks[hunkIndex-1].oldStart+patch.hunks[hunkIndex-1].oldLines-1;
+					if(lastStart==source.length-1){
+						if(source[source.length-1]){
+							preArr=[source[source.length-1]];
+						}else{
+							needNewLineAtEnd=true;
+						}
+					}
 				}
 				if(preArr.length)
 					strToBeWritten.push(preArr.join('\n'));
@@ -195,11 +224,13 @@ function Sync(oldFile, newFile, options){
 			if(!strToBeWritten.length)
 				writeFinishCallback(null);
 			else{
+				let lastCharacter=needNewLineAtEnd?'\n':'';
 				if(op.stream){
-					writer.push(strToBeWritten.join('\n')+(last?'':'\n'));
+					writer.push((alreadyWritten?'\n':'')+strToBeWritten.join('\n')+(last?lastCharacter:''));
 					writeFinishCallback();
 				}else
-					writer.write(strToBeWritten.join('\n')+(last?'':'\n'),writeFinishCallback);
+					writer.write((alreadyWritten?'\n':'')+strToBeWritten.join('\n')+(last?lastCharacter:''),writeFinishCallback);
+				alreadyWritten=true;
 			}
 		}
 		for(var hunkIndex=0;hunkIndex<patch.hunks.length;hunkIndex++){
@@ -220,10 +251,10 @@ function Sync(oldFile, newFile, options){
 					pendingAdditions.push(line.substr(1));
 					lastSymbol='+';
 				}else{//skip \ No newline at end of file
-					if(lastSymbol){
-						lastSymbol=null;
-						writePendings();
-					}
+					//if(lastSymbol){
+					//	lastSymbol=null;
+					//	writePendings();
+					//}
 				}
 			}
 			hunkPending=true;
