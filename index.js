@@ -67,6 +67,8 @@ function Async(oldFile,newFile,options,callback){
 						}else{
 							needNewLineAtEnd=true;
 						}
+					}else if(lastStart<source.length-1){
+						preArr=source.slice(lastStart);
 					}
 				}
 				if(preArr.length)
@@ -168,6 +170,7 @@ function Sync(oldFile, newFile, options){
 	if(patch.hunks.length==0)
 		return op.stream?null:0;
 	else{
+		//console.log('hunks',patch)
 		source=source.split('\n');
 		var alreadyWritten=false;
 		var lastSymbol=null;
@@ -199,11 +202,16 @@ function Sync(oldFile, newFile, options){
 						}else{
 							needNewLineAtEnd=true;
 						}
+					}else if(lastStart<source.length-1){
+						preArr=source.slice(lastStart);
 					}
 				}
 				if(preArr.length)
 					strToBeWritten.push(preArr.join('\n'));
 			}
+			// console.log('writePendings(',normalLine,',',addToPendingRemoves);
+			// console.log('pendingRemoves',pendingRemoves);
+			// console.log('pendingAdditions',pendingAdditions);
 			if(!pendingRemoves.length && pendingAdditions.length){//only addition
 				strToBeWritten.push(pendingAdditions.join('\n'));
 			}else if(pendingRemoves.length && pendingAdditions.length){//conflict
